@@ -225,6 +225,9 @@
             // global namespace instead of being registered in require.
             'draggabilly': {
                 exports: 'Draggabilly'
+            },
+            'hls': {
+                exports: 'Hls'
             }
         }
     });
