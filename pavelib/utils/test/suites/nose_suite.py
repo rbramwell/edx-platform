@@ -182,6 +182,7 @@ class SystemTestSuite(NoseTestSuite):
             " openedx/core/djangoapps/*"
             " openedx/tests/*"
             " openedx/core/lib/*"
+            " features/*"
         )
 
         if self.root in ('lms', 'cms'):
