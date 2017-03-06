@@ -23,7 +23,7 @@ from ...pages.lms.progress import ProgressPage
 from ...pages.lms.staff_view import StaffPage
 from ...pages.lms.track_selection import TrackSelectionPage
 from ...pages.studio.auto_auth import AutoAuthPage
-from ...pages.studio.overview import CourseOutlinePage
+from ...pages.studio.overview import CourseOutlinePage as StudioCourseOutlinePage
 
 
 @attr(shard=9)
@@ -40,7 +40,7 @@ class CoursewareTest(UniqueCourseTest):
         self.courseware_page = CoursewarePage(self.browser, self.course_id)
         self.course_nav = CourseNavPage(self.browser)
 
-        self.course_outline = CourseOutlinePage(
+        self.studio_course_outline = StudioCourseOutlinePage(
             self.browser,
             self.course_info['org'],
             self.course_info['number'],
@@ -94,10 +94,10 @@ class CoursewareTest(UniqueCourseTest):
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
 
         # Visit course outline page in studio.
-        self.course_outline.visit()
+        self.studio_course_outline.visit()
 
         # Set release date for subsection in future.
-        self.course_outline.change_problem_release_date()
+        self.studio_course_outline.change_problem_release_date()
 
         # Logout and login as a student.
         LogoutPage(self.browser).visit()
@@ -140,7 +140,7 @@ class ProctoredExamTest(UniqueCourseTest):
 
         self.courseware_page = CoursewarePage(self.browser, self.course_id)
 
-        self.course_outline = CourseOutlinePage(
+        self.studio_course_outline = StudioCourseOutlinePage(
             self.browser,
             self.course_info['org'],
             self.course_info['number'],
@@ -234,10 +234,10 @@ class ProctoredExamTest(UniqueCourseTest):
         """
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
+        self.studio_course_outline.visit()
 
-        self.course_outline.open_subsection_settings_dialog()
-        self.assertTrue(self.course_outline.proctoring_items_are_displayed())
+        self.studio_course_outline.open_subsection_settings_dialog()
+        self.assertTrue(self.studio_course_outline.proctoring_items_are_displayed())
 
     def test_proctored_exam_flow(self):
         """
@@ -251,11 +251,11 @@ class ProctoredExamTest(UniqueCourseTest):
         """
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
-        self.course_outline.open_subsection_settings_dialog()
+        self.studio_course_outline.visit()
+        self.studio_course_outline.open_subsection_settings_dialog()
 
-        self.course_outline.select_advanced_tab()
-        self.course_outline.make_exam_proctored()
+        self.studio_course_outline.select_advanced_tab()
+        self.studio_course_outline.make_exam_proctored()
 
         LogoutPage(self.browser).visit()
         self._login_as_a_verified_user()
@@ -272,11 +272,11 @@ class ProctoredExamTest(UniqueCourseTest):
         """
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
-        self.course_outline.open_subsection_settings_dialog()
+        self.studio_course_outline.visit()
+        self.studio_course_outline.open_subsection_settings_dialog()
 
-        self.course_outline.select_advanced_tab()
-        self.course_outline.make_exam_timed(hide_after_due=hide_after_due)
+        self.studio_course_outline.select_advanced_tab()
+        self.studio_course_outline.make_exam_timed(hide_after_due=hide_after_due)
 
         LogoutPage(self.browser).visit()
         self._login_as_a_verified_user()
@@ -312,9 +312,9 @@ class ProctoredExamTest(UniqueCourseTest):
 
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
+        self.studio_course_outline.visit()
         last_week = (datetime.today() - timedelta(days=7)).strftime("%m/%d/%Y")
-        self.course_outline.change_problem_due_date(last_week)
+        self.studio_course_outline.change_problem_due_date(last_week)
 
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, self.USERNAME, self.EMAIL, False, self.course_id)
@@ -355,26 +355,26 @@ class ProctoredExamTest(UniqueCourseTest):
         """
         LogoutPage(self.browser).visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
+        self.studio_course_outline.visit()
 
-        self.course_outline.open_subsection_settings_dialog()
-        self.course_outline.select_advanced_tab()
+        self.studio_course_outline.open_subsection_settings_dialog()
+        self.studio_course_outline.select_advanced_tab()
 
-        self.course_outline.select_none_exam()
-        self.assertFalse(self.course_outline.time_allotted_field_visible())
-        self.assertFalse(self.course_outline.exam_review_rules_field_visible())
+        self.studio_course_outline.select_none_exam()
+        self.assertFalse(self.studio_course_outline.time_allotted_field_visible())
+        self.assertFalse(self.studio_course_outline.exam_review_rules_field_visible())
 
-        self.course_outline.select_timed_exam()
-        self.assertTrue(self.course_outline.time_allotted_field_visible())
-        self.assertFalse(self.course_outline.exam_review_rules_field_visible())
+        self.studio_course_outline.select_timed_exam()
+        self.assertTrue(self.studio_course_outline.time_allotted_field_visible())
+        self.assertFalse(self.studio_course_outline.exam_review_rules_field_visible())
 
-        self.course_outline.select_proctored_exam()
-        self.assertTrue(self.course_outline.time_allotted_field_visible())
-        self.assertTrue(self.course_outline.exam_review_rules_field_visible())
+        self.studio_course_outline.select_proctored_exam()
+        self.assertTrue(self.studio_course_outline.time_allotted_field_visible())
+        self.assertTrue(self.studio_course_outline.exam_review_rules_field_visible())
 
-        self.course_outline.select_practice_exam()
-        self.assertTrue(self.course_outline.time_allotted_field_visible())
-        self.assertFalse(self.course_outline.exam_review_rules_field_visible())
+        self.studio_course_outline.select_practice_exam()
+        self.assertTrue(self.studio_course_outline.time_allotted_field_visible())
+        self.assertFalse(self.studio_course_outline.exam_review_rules_field_visible())
 
 
 @attr(shard=9)
@@ -390,7 +390,7 @@ class CoursewareMultipleVerticalsTest(UniqueCourseTest, EventsTestMixin):
 
         self.courseware_page = CoursewarePage(self.browser, self.course_id)
 
-        self.course_outline = CourseOutlinePage(
+        self.studio_course_outline = StudioCourseOutlinePage(
             self.browser,
             self.course_info['org'],
             self.course_info['number'],
@@ -841,7 +841,7 @@ class SubsectionHiddenAfterDueDateTest(UniqueCourseTest):
         self.courseware_page = CoursewarePage(self.browser, self.course_id)
         self.logout_page = LogoutPage(self.browser)
 
-        self.course_outline = CourseOutlinePage(
+        self.studio_course_outline = StudioCourseOutlinePage(
             self.browser,
             self.course_info['org'],
             self.course_info['number'],
@@ -877,11 +877,11 @@ class SubsectionHiddenAfterDueDateTest(UniqueCourseTest):
         """
         self.logout_page.visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
-        self.course_outline.open_subsection_settings_dialog()
+        self.studio_course_outline.visit()
+        self.studio_course_outline.open_subsection_settings_dialog()
 
-        self.course_outline.select_advanced_tab('hide_after_due_date')
-        self.course_outline.make_subsection_hidden_after_due_date()
+        self.studio_course_outline.select_advanced_tab('hide_after_due_date')
+        self.studio_course_outline.make_subsection_hidden_after_due_date()
 
         self.logout_page.visit()
         auto_auth(self.browser, self.USERNAME, self.EMAIL, False, self.course_id)
@@ -917,9 +917,9 @@ class SubsectionHiddenAfterDueDateTest(UniqueCourseTest):
 
         self.logout_page.visit()
         auto_auth(self.browser, "STAFF_TESTER", "staff101@example.com", True, self.course_id)
-        self.course_outline.visit()
+        self.studio_course_outline.visit()
         last_week = (datetime.today() - timedelta(days=7)).strftime("%m/%d/%Y")
-        self.course_outline.change_problem_due_date(last_week)
+        self.studio_course_outline.change_problem_due_date(last_week)
 
         self.logout_page.visit()
         auto_auth(self.browser, self.USERNAME, self.EMAIL, False, self.course_id)
