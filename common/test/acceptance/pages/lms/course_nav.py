@@ -178,6 +178,9 @@ class CourseNavPage(PageObject):
         That's true right after we click the section/subsection, but not true in general
         (the user could go to a section, then expand another tab).
         """
+        # TODO: TNL-6546: This call is still needed, but it will need to be refactored
+        #   to use breadcrumbs or other metadata on the page.  Can we simply write the
+        #   section/subsection as data attributes to be used for testing?
         current_section_list = self.q(css='.course-navigation .chapter.is-open .group-heading').text
         current_subsection_list = self.q(css='.course-navigation .chapter-content-container .menu-item.active a p').text
 

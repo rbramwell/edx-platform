@@ -21,26 +21,27 @@ from common.test.acceptance.tests.helpers import (
     select_option_by_text,
     get_selected_option_text
 )
+from common.test.acceptance.pages.common.logout import LogoutPage
 from common.test.acceptance.pages.lms import BASE_URL
 from common.test.acceptance.pages.lms.account_settings import AccountSettingsPage
 from common.test.acceptance.pages.lms.auto_auth import AutoAuthPage
 from common.test.acceptance.pages.lms.create_mode import ModeCreationPage
-from common.test.acceptance.pages.common.logout import LogoutPage
 from common.test.acceptance.pages.lms.course_info import CourseInfoPage
-from common.test.acceptance.pages.lms.tab_nav import TabNavPage
+from common.test.acceptance.pages.lms.course_outline import CourseOutlinePage
 from common.test.acceptance.pages.lms.course_nav import CourseNavPage
-from common.test.acceptance.pages.lms.progress import ProgressPage
-from common.test.acceptance.pages.lms.dashboard import DashboardPage
-from common.test.acceptance.pages.lms.problem import ProblemPage
-from common.test.acceptance.pages.lms.video.video import VideoPage
-from common.test.acceptance.pages.lms.courseware import CoursewarePage
-from common.test.acceptance.pages.studio.settings import SettingsPage
-from common.test.acceptance.pages.lms.login_and_register import CombinedLoginAndRegisterPage, ResetPasswordPage
-from common.test.acceptance.pages.lms.track_selection import TrackSelectionPage
-from common.test.acceptance.pages.lms.pay_and_verify import PaymentAndVerificationFlow, FakePaymentPage
 from common.test.acceptance.pages.lms.course_wiki import (
     CourseWikiPage, CourseWikiEditPage, CourseWikiHistoryPage, CourseWikiChildrenPage
 )
+from common.test.acceptance.pages.lms.courseware import CoursewarePage
+from common.test.acceptance.pages.lms.dashboard import DashboardPage
+from common.test.acceptance.pages.lms.login_and_register import CombinedLoginAndRegisterPage, ResetPasswordPage
+from common.test.acceptance.pages.lms.pay_and_verify import PaymentAndVerificationFlow, FakePaymentPage
+from common.test.acceptance.pages.lms.progress import ProgressPage
+from common.test.acceptance.pages.lms.problem import ProblemPage
+from common.test.acceptance.pages.lms.tab_nav import TabNavPage
+from common.test.acceptance.pages.lms.track_selection import TrackSelectionPage
+from common.test.acceptance.pages.lms.video.video import VideoPage
+from common.test.acceptance.pages.studio.settings import SettingsPage
 from common.test.acceptance.fixtures.course import CourseFixture, XBlockFixtureDesc, CourseUpdateDesc
 
 
@@ -760,6 +761,7 @@ class HighLevelTabTest(UniqueCourseTest):
         )
         self.assertEqual(expected_article_name, course_wiki.article_name)
 
+    # TODO: TNL-6546: This whole function will be able to go away, replaced by test_course_outline below.
     def test_courseware_nav(self):
         """
         Navigate to a particular unit in the course.
@@ -793,6 +795,46 @@ class HighLevelTabTest(UniqueCourseTest):
 
         # Navigate to a particular section other than the default landing section.
         self.course_nav.go_to_section('Test Section 2', 'Test Subsection 3')
+        self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
+
+    def test_course_outline(self):
+        """
+        Navigate to a particular subsection in the course.
+        """
+        # Navigate to the course outline page from the info page
+        # TODO: TNL-6546: Switch to testing tab here, rather than calling course_outline.visit()
+        #self.course_info_page.visit()
+        #self.tab_nav.go_to_tab('Course')
+        course_outline = CourseOutlinePage(self.browser, self.course_id)
+        # TODO: TNL-6546: Remove the following line.
+        course_outline.visit()
+
+        # Check that the course navigation appears correctly
+        EXPECTED_SECTIONS = {
+            'Test Section': ['Test Subsection'],
+            'Test Section 2': ['Test Subsection 2', 'Test Subsection 3']
+        }
+
+        actual_sections = course_outline.sections
+
+        for section, subsections in EXPECTED_SECTIONS.iteritems():
+            self.assertIn(section, actual_sections)
+            self.assertEqual(actual_sections[section], EXPECTED_SECTIONS[section])
+
+        # Navigate to a particular section
+        course_outline.go_to_section('Test Section', 'Test Subsection')
+
+        # Check the sequence items
+        EXPECTED_ITEMS = ['Test Problem 1', 'Test Problem 2', 'Test HTML']
+
+        actual_items = self.course_nav.sequence_items
+        self.assertEqual(len(actual_items), len(EXPECTED_ITEMS))
+        for expected in EXPECTED_ITEMS:
+            self.assertIn(expected, actual_items)
+
+        # Navigate to a particular section other than the default landing section.
+        course_outline.visit()
+        course_outline.go_to_section('Test Section 2', 'Test Subsection 3')
         self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
 
 
