@@ -1,21 +1,42 @@
 """
-LMS Course Outline page object
+LMS Course Home page object
 """
+
+from bok_choy.page_object import PageObject
 
 from common.test.acceptance.pages.lms.course_nav import CourseNavPage
 from common.test.acceptance.pages.lms.course_page import CoursePage
-from bok_choy.promise import EmptyPromise
 
 
-class CourseOutlinePage(CoursePage):
+class CourseHomePage(CoursePage):
     """
-    Navigate sections and sequences in the courseware.
+    Course home page, including course outline.
     """
 
     url_path = "course/"
 
     def is_browser_on_page(self):
         return self.q(css='.course-outline').present
+
+    def __init__(self, browser, course_id):
+        super(CourseHomePage, self).__init__(browser, course_id)
+        self.course_id = course_id
+        self.outline = CourseOutlinePage(browser, self)
+
+
+class CourseOutlinePage(PageObject):
+    """
+    Course outline fragment of page.
+    """
+
+    url = None
+
+    def __init__(self, browser, parent_page):
+        super(CourseOutlinePage, self).__init__(browser)
+        self.parent_page = parent_page
+
+    def is_browser_on_page(self):
+        return self.parent_page.is_browser_on_page
 
     @property
     def sections(self):
@@ -33,7 +54,7 @@ class CourseOutlinePage(CoursePage):
         You can use these titles in `go_to_section` to navigate to the section.
         """
         # Dict to store the result
-        nav_dict = dict()
+        outline_dict = dict()
 
         section_titles = self._section_titles()
 
@@ -44,9 +65,9 @@ class CourseOutlinePage(CoursePage):
                 self.warning("Could not find subsections for '{0}'".format(sec_title))
             else:
                 # Add one to convert list index (starts at 0) to CSS index (starts at 1)
-                nav_dict[sec_title] = self._subsection_titles(sec_index + 1)
+                outline_dict[sec_title] = self._subsection_titles(sec_index + 1)
 
-        return nav_dict
+        return outline_dict
 
     def go_to_section(self, section_title, subsection_title):
         """
@@ -58,19 +79,16 @@ class CourseOutlinePage(CoursePage):
             go_to_section("Week 1", "Lesson 1")
         """
 
-        # For test stability, disable JQuery animations (opening / closing menus)
-        self.browser.execute_script("jQuery.fx.off = true;")
-
         # Get the section by index
         try:
-            sec_index = self._section_titles().index(section_title)
+            section_index = self._section_titles().index(section_title)
         except ValueError:
             self.warning("Could not find section '{0}'".format(section_title))
             return
 
         # Get the subsection by index
         try:
-            subsec_index = self._subsection_titles(sec_index + 1).index(subsection_title)
+            subsection_index = self._subsection_titles(section_index + 1).index(subsection_title)
         except ValueError:
             msg = "Could not find subsection '{0}' in section '{1}'".format(subsection_title, section_title)
             self.warning(msg)
@@ -79,11 +97,11 @@ class CourseOutlinePage(CoursePage):
         # Convert list indices (start at zero) to CSS indices (start at 1)
         subsection_css = (
             ".outline-item.section:nth-of-type({0}) .subsection:nth-of-type({1}) .outline-item"
-        ).format(sec_index + 1, subsec_index + 1)
+        ).format(section_index + 1, subsection_index + 1)
 
         # Click the subsection and ensure that the page finishes reloading
         self.q(css=subsection_css).first.click()
-        self._on_section_promise(section_title, subsection_title).fulfill()
+        self._wait_for_course_section(section_title, subsection_title)
 
     def _section_titles(self):
         """
@@ -111,13 +129,12 @@ class CourseOutlinePage(CoursePage):
             lambda el: el.get_attribute('innerHTML').strip()
         ).results
 
-    def _on_section_promise(self, section_title, subsection_title):
+    def _wait_for_course_section(self, section_title, subsection_title):
         """
-        Return a `Promise` that is fulfilled when the user is on
-        the correct section and subsection.
+        Ensures the user navigates to the course content page with the correct section and subsection.
         """
         course_nav = CourseNavPage(self.browser)
-        desc = "currently at section '{0}' and subsection '{1}'".format(section_title, subsection_title)
-        return EmptyPromise(
-            lambda: course_nav.is_on_section(section_title, subsection_title), desc
+        self.wait_for(
+            promise_check_func=lambda: course_nav.is_on_section(section_title, subsection_title),
+            description="Waiting for course page with section '{0}' and subsection '{1}'".format(section_title, subsection_title)
         )

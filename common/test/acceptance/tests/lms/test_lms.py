@@ -26,8 +26,8 @@ from common.test.acceptance.pages.lms import BASE_URL
 from common.test.acceptance.pages.lms.account_settings import AccountSettingsPage
 from common.test.acceptance.pages.lms.auto_auth import AutoAuthPage
 from common.test.acceptance.pages.lms.create_mode import ModeCreationPage
+from common.test.acceptance.pages.lms.course_home import CourseHomePage
 from common.test.acceptance.pages.lms.course_info import CourseInfoPage
-from common.test.acceptance.pages.lms.course_outline import CourseOutlinePage
 from common.test.acceptance.pages.lms.course_nav import CourseNavPage
 from common.test.acceptance.pages.lms.course_wiki import (
     CourseWikiPage, CourseWikiEditPage, CourseWikiHistoryPage, CourseWikiChildrenPage
@@ -797,17 +797,32 @@ class HighLevelTabTest(UniqueCourseTest):
         self.course_nav.go_to_section('Test Section 2', 'Test Subsection 3')
         self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
 
-    def test_course_outline(self):
+    # def test_course_home(self):
+    #     """
+    #     Navigate to the course home page using the tab.
+    #     """
+    #     # TODO: TNL-6546: Remove override_flag.
+    #     from waffle.testutils import override_flag
+    #     # ERROR: Import results in the following error:
+    #     # - ImproperlyConfigured: Requested setting CACHES, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.
+    #     with override_flag('unified_course_view', active=True):
+    #         self.course_info_page.visit()
+    #         self.tab_nav.go_to_tab('Course')
+    #         course_home = CourseHomePage(self.browser, self.course_id)
+    #
+    #         course_home.is_browser_on_page()
+
+    def test_course_home(self):
         """
-        Navigate to a particular subsection in the course.
+        Navigate to the course home page using the tab.
         """
-        # Navigate to the course outline page from the info page
-        # TODO: TNL-6546: Switch to testing tab here, rather than calling course_outline.visit()
+        # TODO: TNL-6546: Use tab navigation and remove course_home.visit().
         #self.course_info_page.visit()
         #self.tab_nav.go_to_tab('Course')
-        course_outline = CourseOutlinePage(self.browser, self.course_id)
-        # TODO: TNL-6546: Remove the following line.
-        course_outline.visit()
+        course_home = CourseHomePage(self.browser, self.course_id)
+        course_home.visit()
+
+# TODO: Move this to a separate CourseHomeTests
 
         # Check that the course navigation appears correctly
         EXPECTED_SECTIONS = {
@@ -815,14 +830,14 @@ class HighLevelTabTest(UniqueCourseTest):
             'Test Section 2': ['Test Subsection 2', 'Test Subsection 3']
         }
 
-        actual_sections = course_outline.sections
+        actual_sections = course_home.outline.sections
 
         for section, subsections in EXPECTED_SECTIONS.iteritems():
             self.assertIn(section, actual_sections)
             self.assertEqual(actual_sections[section], EXPECTED_SECTIONS[section])
 
         # Navigate to a particular section
-        course_outline.go_to_section('Test Section', 'Test Subsection')
+        course_home.outline.go_to_section('Test Section', 'Test Subsection')
 
         # Check the sequence items
         EXPECTED_ITEMS = ['Test Problem 1', 'Test Problem 2', 'Test HTML']
@@ -833,8 +848,8 @@ class HighLevelTabTest(UniqueCourseTest):
             self.assertIn(expected, actual_items)
 
         # Navigate to a particular section other than the default landing section.
-        course_outline.visit()
-        course_outline.go_to_section('Test Section 2', 'Test Subsection 3')
+        course_home.visit()
+        course_home.outline.go_to_section('Test Section 2', 'Test Subsection 3')
         self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
 
 
