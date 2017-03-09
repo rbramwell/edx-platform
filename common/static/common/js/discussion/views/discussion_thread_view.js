@@ -299,7 +299,8 @@
                 var view;
                 response.set('thread', this.model);
                 view = new ThreadResponseView($.extend({
-                    model: response
+                    model: response,
+                    mode: this.mode
                 }, options));
                 view.on('comment:add', this.addComment);
                 view.on('comment:endorse', this.endorseThread);

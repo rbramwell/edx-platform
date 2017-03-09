@@ -1,5 +1,9 @@
 <div class="edit-post-form" id="comment_<%- id %>">
-    <h1><%- gettext("Editing comment") %></h1>
+    <% if (mode === 'inline') { %>
+        <h4 class="thread-title"><%- gettext("Editing post") %></h4>
+    <% } else { %>
+        <h2 class="thread-title"><%- gettext("Editing post") %></h2>
+    <% } %>
     <ul class="edit-comment-form-errors"></ul>
     <div class="form-row">
         <div class="edit-comment-body" name="body" data-id="<%- id %>"><%- body %></div>

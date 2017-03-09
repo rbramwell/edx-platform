@@ -25,11 +25,12 @@
             },
 
             render: function() {
-                var formId = _.uniqueId('form-'),
+qq                var formId = _.uniqueId('form-'),
                     threadTypeTemplate = edx.HtmlUtils.template($('#thread-type-template').html()),
                     $threadTypeSelector = $(threadTypeTemplate({form_id: formId}).toString()),
+                    context = $.extend({mode: this.mode}, this.model.attributes),
                     mainTemplate = edx.HtmlUtils.template($('#thread-edit-template').html());
-                edx.HtmlUtils.setHtml(this.$el, mainTemplate(this.model.toJSON()));
+                edx.HtmlUtils.setHtml(this.$el, mainTemplate(context));
                 this.container.append(this.$el);
                 this.$submitBtn = this.$('.post-update');
                 this.addField($threadTypeSelector);
