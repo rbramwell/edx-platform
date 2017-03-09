@@ -338,7 +338,12 @@ def manage_video_subtitles_save(item, user, old_metadata=None, generate_translat
 
     # 1.
     html5_ids = get_html5_ids(item.html5_sources)
-    possible_video_id_list = [item.youtube_id_1_0] + html5_ids
+
+    # According to check_transcripts in contentstore/views/transcripts_ajax.py, transcript for youtube
+    # source is prioritized higher than those for the html5 sources. So, appending 'youtube_id_1_0' at
+    # end of the list because item.sub is getting updated on every iteration and on last iteration
+    # item.sub is going to be 'youtube_id_1_0' if it is set on the video module.
+    possible_video_id_list = html5_ids + [item.youtube_id_1_0]
     sub_name = item.sub
     for video_id in possible_video_id_list:
         if not video_id:
