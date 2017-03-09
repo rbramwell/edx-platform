@@ -5,22 +5,22 @@ define(['backbone',
         'URI',
         'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpers',
         'common/js/spec_helpers/template_helpers',
-        'js/bookmarks/views/bookmarks_list_button',
-        'js/bookmarks/views/bookmarks_list',
-        'js/bookmarks/collections/bookmarks'],
-    function(Backbone, $, _, Logger, URI, AjaxHelpers, TemplateHelpers, BookmarksListButtonView, BookmarksListView,
-              BookmarksCollection) {
+        'course_bookmarks/js/views/bookmarks_list_button',
+        'course_bookmarks/js/views/bookmarks_list',
+        'course_bookmarks/js/collections/bookmarks'],
+    function(Backbone, $, _, Logger, URI, AjaxHelpers, TemplateHelpers, BookmarksListButtonView,
+             BookmarksListView, BookmarksCollection) {
         'use strict';
 
         describe('lms.courseware.bookmarks', function() {
-            var bookmarksButtonView;
+            var bookmarksButtonView, verifyRequestParams, createBookmarksData, createBookmarkUrl, breadcrumbTrail,
+                verifyBookmarkedData, verifyPaginationInfo;
 
             beforeEach(function() {
-                loadFixtures('js/fixtures/bookmarks/bookmarks.html');
+                loadFixtures('course_bookmarks/fixtures/bookmarks.html');
                 TemplateHelpers.installTemplates(
                     [
-                        'templates/fields/message_banner',
-                        'templates/bookmarks/bookmarks-list'
+                        'templates/fields/message_banner'
                     ]
                 );
                 spyOn(Logger, 'log').and.returnValue($.Deferred().resolve());
@@ -39,24 +39,25 @@ define(['backbone',
                 bookmarksButtonView = new BookmarksListButtonView();
             });
 
-            var verifyRequestParams = function(requests, params) {
+            verifyRequestParams = function(requests, params) {
                 var urlParams = (new URI(requests[requests.length - 1].url)).query(true);
                 _.each(params, function(value, key) {
                     expect(urlParams[key]).toBe(value);
                 });
             };
 
-            var createBookmarksData = function(options) {
+            createBookmarksData = function(options) {
                 var data = {
-                    count: options.count || 0,
-                    num_pages: options.num_pages || 1,
-                    current_page: options.current_page || 1,
-                    start: options.start || 0,
-                    results: []
-                };
+                        count: options.count || 0,
+                        num_pages: options.num_pages || 1,
+                        current_page: options.current_page || 1,
+                        start: options.start || 0,
+                        results: []
+                    },
+                    i, bookmarkInfo;
 
-                for (var i = 0; i < options.numBookmarksToCreate; i++) {
-                    var bookmarkInfo = {
+                for (i = 0; i < options.numBookmarksToCreate; i++) {
+                    bookmarkInfo = {
                         id: i,
                         display_name: 'UNIT_DISPLAY_NAME_' + i,
                         created: new Date().toISOString(),
@@ -75,48 +76,50 @@ define(['backbone',
                 return data;
             };
 
-            var createBookmarkUrl = function(courseId, usageId) {
+            createBookmarkUrl = function(courseId, usageId) {
                 return '/courses/' + courseId + '/jump_to/' + usageId;
             };
 
-            var breadcrumbTrail = function(path, unitDisplayName) {
+            breadcrumbTrail = function(path, unitDisplayName) {
                 return _.pluck(path, 'display_name').
-                    concat([unitDisplayName]).
-                    join(' <span class="icon fa fa-caret-right" aria-hidden="true"></span><span class="sr">-</span> ');
+                concat([unitDisplayName]).
+                join(' <span class="icon fa fa-caret-right" aria-hidden="true"></span><span class="sr">-</span> ');
             };
 
-            var verifyBookmarkedData = function(view, expectedData) {
+            verifyBookmarkedData = function(view, expectedData) {
                 var courseId, usageId;
                 var bookmarks = view.$('.bookmarks-results-list-item');
                 var results = expectedData.results;
+                var i, $bookmark;
 
                 expect(bookmarks.length, results.length);
 
-                for (var bookmark_index = 0; bookmark_index < results.length; bookmark_index++) {
-                    courseId = results[bookmark_index].course_id;
-                    usageId = results[bookmark_index].usage_id;
+                for (i = 0; i < results.length; i++) {
+                    $bookmark = $(bookmarks[i]);
+                    courseId = results[i].course_id;
+                    usageId = results[i].usage_id;
 
-                    expect(bookmarks[bookmark_index]).toHaveAttr('href', createBookmarkUrl(courseId, usageId));
+                    expect(bookmarks[i]).toHaveAttr('href', createBookmarkUrl(courseId, usageId));
 
-                    expect($(bookmarks[bookmark_index]).data('bookmarkId')).toBe(bookmark_index);
-                    expect($(bookmarks[bookmark_index]).data('componentType')).toBe('vertical');
-                    expect($(bookmarks[bookmark_index]).data('usageId')).toBe(usageId);
+                    expect($bookmark.data('bookmarkId')).toBe(i);
+                    expect($bookmark.data('componentType')).toBe('vertical');
+                    expect($bookmark.data('usageId')).toBe(usageId);
 
-                    expect($(bookmarks[bookmark_index]).find('.list-item-breadcrumbtrail').html().trim()).
-                        toBe(breadcrumbTrail(results[bookmark_index].path, results[bookmark_index].display_name));
+                    expect($bookmark.find('.list-item-breadcrumbtrail').html().trim())
+                        .toBe(breadcrumbTrail(results[i].path, results[i].display_name));
 
-                    expect($(bookmarks[bookmark_index]).find('.list-item-date').text().trim()).
-                        toBe('Bookmarked on ' + view.humanFriendlyDate(results[bookmark_index].created));
+                    expect($bookmark.find('.list-item-date').text().trim())
+                        .toBe('Bookmarked on ' + view.humanFriendlyDate(results[i].created));
                 }
             };
 
-            var verifyPaginationInfo = function(requests, expectedData, currentPage, headerMessage) {
+            verifyPaginationInfo = function(requests, expectedData, currentPage, headerMessage) {
                 AjaxHelpers.respondWithJson(requests, expectedData);
                 verifyBookmarkedData(bookmarksButtonView.bookmarksListView, expectedData);
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-footer span.current-page').text().trim()).
-                    toBe(currentPage);
+                toBe(currentPage);
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-header span').text().trim()).
-                    toBe(headerMessage);
+                toBe(headerMessage);
             };
 
             it('has correct behavior for bookmarks button', function() {
@@ -144,19 +147,19 @@ define(['backbone',
                 var requests = AjaxHelpers.requests(this);
                 var expectedData = createBookmarksData({numBookmarksToCreate: 0});
 
-                bookmarksButtonView.$('.bookmarks-list-button').click();
-                AjaxHelpers.respondWithJson(requests, expectedData);
-
-                expect(bookmarksButtonView.bookmarksListView.$('.bookmarks-empty-header').text().trim()).
-                    toBe('You have not bookmarked any courseware pages yet.');
-
                 var emptyListText = 'Use bookmarks to help you easily return to courseware pages. ' +
                     'To bookmark a page, select Bookmark in the upper right corner of that page. ' +
                     'To see a list of all your bookmarks, select Bookmarks in the upper left ' +
                     'corner of any courseware page.';
 
+                bookmarksButtonView.$('.bookmarks-list-button').click();
+                AjaxHelpers.respondWithJson(requests, expectedData);
+
+                expect(bookmarksButtonView.bookmarksListView.$('.bookmarks-empty-header').text().trim()).
+                toBe('You have not bookmarked any courseware pages yet.');
+
                 expect(bookmarksButtonView.bookmarksListView.$('.bookmarks-empty-detail-title').text().trim()).
-                    toBe(emptyListText);
+                toBe(emptyListText);
 
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-header').length).toBe(0);
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-footer').length).toBe(0);
@@ -175,7 +178,7 @@ define(['backbone',
                 AjaxHelpers.respondWithJson(requests, expectedData);
 
                 expect(bookmarksButtonView.bookmarksListView.$('.bookmarks-results-header').text().trim()).
-                    toBe('My Bookmarks');
+                toBe('My Bookmarks');
 
                 verifyBookmarkedData(bookmarksButtonView.bookmarksListView, expectedData);
 
@@ -227,9 +230,9 @@ define(['backbone',
                 verifyBookmarkedData(bookmarksButtonView.bookmarksListView, expectedData);
 
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-footer span.current-page').text().trim()).
-                    toBe('2');
+                toBe('2');
                 expect(bookmarksButtonView.bookmarksListView.$('.paging-header span').text().trim()).
-                    toBe('Showing 11-12 out of 12 total');
+                toBe('Showing 11-12 out of 12 total');
             });
 
             it('can navigate forward and backward', function() {
@@ -285,14 +288,15 @@ define(['backbone',
             });
 
             it('can navigate to correct url', function() {
-                var requests = AjaxHelpers.requests(this);
+                var requests = AjaxHelpers.requests(this),
+                    url;
                 spyOn(bookmarksButtonView.bookmarksListView, 'visitBookmark');
 
                 bookmarksButtonView.$('.bookmarks-list-button').click();
                 AjaxHelpers.respondWithJson(requests, createBookmarksData({numBookmarksToCreate: 1}));
 
                 bookmarksButtonView.bookmarksListView.$('.bookmarks-results-list-item').click();
-                var url = bookmarksButtonView.bookmarksListView.$('.bookmarks-results-list-item').attr('href');
+                url = bookmarksButtonView.bookmarksListView.$('.bookmarks-results-list-item').attr('href');
                 expect(bookmarksButtonView.bookmarksListView.visitBookmark).toHaveBeenCalledWithUrl(url);
             });
 

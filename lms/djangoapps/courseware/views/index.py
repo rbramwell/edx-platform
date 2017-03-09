@@ -23,7 +23,7 @@ import newrelic.agent
 import urllib
 import waffle
 
-from xblock.fragment import Fragment
+from web_fragments.fragment import Fragment
 from opaque_keys.edx.keys import CourseKey
 from openedx.core.djangoapps.lang_pref import LANGUAGE_KEY
 from openedx.core.djangoapps.user_api.preferences.api import get_user_preference
@@ -400,7 +400,6 @@ class CoursewareIndex(View):
         request = RequestCache.get_current_request()
         courseware_context = {
             'csrf': csrf(self.request)['csrf_token'],
-            'COURSE_TITLE': self.course.display_name_with_default_escaped,
             'course': self.course,
             'init': '',
             'fragment': Fragment(),
@@ -458,7 +457,7 @@ class CoursewareIndex(View):
                 courseware_context['default_tab'] = self.section.default_tab
 
             # section data
-            courseware_context['section_title'] = self.section.display_name_with_default_escaped
+            courseware_context['section_title'] = self.section.display_name_with_default
             section_context = self._create_section_context(
                 table_of_contents['previous_of_active_section'],
                 table_of_contents['next_of_active_section'],

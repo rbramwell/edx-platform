@@ -4,7 +4,7 @@
     define([
         'jquery',
         'logger',
-        'js/bookmarks/views/bookmarks_list_button'
+        'course_bookmarks/js/views/bookmarks_list_button'
     ],
         function($, Logger, BookmarksListButton) {
             return function() {
