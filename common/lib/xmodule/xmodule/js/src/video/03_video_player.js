@@ -161,6 +161,7 @@ function(HTML5Video, HTML5HLSVideo, Resizer, HLS, _) {
         // Browser can play HLS videos if either `Media Source Extensions`
         // feature is supported or browser is safari (native HLS support)
         state.canPlayHLS = state.HLSVideoSources.length > 0 && (HLS.isSupported() || state.browserIsSafari);
+        state.HLSOnlySources = _.difference(state.config.sources, state.HLSVideoSources).length === 0;
 
         commonConfig = {
             playerVars: state.videoPlayer.playerVars,
@@ -169,20 +170,23 @@ function(HTML5Video, HTML5HLSVideo, Resizer, HLS, _) {
             events: {
                 onReady: state.videoPlayer.onReady,
                 onStateChange: state.videoPlayer.onStateChange,
-                onError: state.videoPlayer.onError,
-                onLoadMetadataHtml5: state.videoPlayer.onLoadMetadataHtml5
+                onError: state.videoPlayer.onError
             }
         };
 
         if (state.videoType === 'html5') {
-            if (state.canPlayHLS) {
+            if (state.canPlayHLS || state.HLSOnlySources) {
                 state.videoPlayer.player = new HTML5HLSVideo.Player(
                     state.el,
-                    _.extend({}, commonConfig, {videoSources: state.HLSVideoSources})
+                    _.extend({}, commonConfig, {
+                        videoSources: state.HLSVideoSources,
+                        canPlayHLS: state.canPlayHLS,
+                        HLSOnlySources: state.HLSOnlySources
+                    })
                 );
                 // `loadedmetadata` event triggered too early on Safari due
                 // to which correct video dimensions were not calculated
-                eventToBeTriggered = state.browserIsSafari ? 'loadeddata' : 'loadedmetadata';
+                eventToBeTriggered = state.browserIsSafari ? 'loadeddata' : eventToBeTriggered;
             } else {
                 state.videoPlayer.player = new HTML5Video.Player(state.el, commonConfig);
             }

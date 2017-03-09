@@ -12,14 +12,17 @@
 
         HLSVideo.Player = (function() {
             function PlayerHLS(el, config) {
-                var self = this,
-                    onReady = _.once(function() {
-                        config.events.onReady();
-                        config.events.onLoadMetadataHtml5();
-                    });
+                var self = this;
 
                 // do common initialization independent of player type
                 this.init(el, config);
+
+                // If we have only HLS sources and browser doesn't support HLS
+                // then show error message.
+                if (config.HLSOnlySources && !config.canPlayHLS) {
+                    this.showErrorMessage();
+                    return;
+                }
 
                 // Safari has native support to play HLS videos
                 if (config.browserIsSafari) {
@@ -30,12 +33,31 @@
                     this.hls.attachMedia(this.video);
                     this.hls.on(HLS.Events.ERROR, this.onError.bind(this));
                     this.hls.on(HLS.Events.MANIFEST_PARSED, function(event, data) {
-                        console.log('[HLS Video]: Manifest Parsed, found ' + data.levels.length + ' quality level');
+                        console.log(
+                            '[HLS Video]: MANIFEST_PARSED, qualityLevelsInfo: ',
+                            data.levels.map(function(level) {
+                                return {
+                                    url: level.url[0],
+                                    bitrate: level.bitrate,
+                                    resolution: level.width + 'x' + level.height
+                                };
+                            })
+                        );
                     });
-                    this.hls.on(HLS.Events.LEVEL_LOADED, function() {
-                        if (!isNaN(self.video.duration)) {
-                            onReady();
-                        }
+                    this.hls.on(HLS.Events.LEVEL_SWITCHING, function(event, data) {
+                        console.log('[HLS Video]: LEVEL_SWITCHING, levelId: ', data.level);
+                    });
+                    this.hls.on(HLS.Events.LEVEL_SWITCHED, function(event, data) {
+                        var level = self.hls.levels[data.level];
+                        console.log(
+                            '[HLS Video]: LEVEL_SWITCHED, qualityLevelInfo: ',
+                            {
+                                levelId: data.level,
+                                url: level.url[0],
+                                bitrate: level.bitrate,
+                                resolution: level.width + 'x' + level.height
+                            }
+                        );
                     });
                 }
             }
@@ -43,11 +65,20 @@
             PlayerHLS.prototype = Object.create(HTML5Video.Player.prototype);
             PlayerHLS.prototype.constructor = PlayerHLS;
 
-            PlayerHLS.prototype.onLoadedMetadata = function() {
-                this.playerState = HTML5Video.PlayerState.PAUSED;
-                if (this.config.browserIsSafari) {
-                    this.config.events.onReady();
-                }
+            PlayerHLS.prototype.showErrorMessage = function() {
+                this.el
+                    .find('.video-player div')
+                    .addClass('hidden')
+                    .end()
+                    .find('.video-player .video-error.hls-video')
+                    .removeClass('is-hidden')
+                    .end()
+                    .addClass('is-initialized')
+                    .find('.spinner')
+                    .attr({
+                        'aria-hidden': 'true',
+                        tabindex: -1
+                    });
             };
 
             PlayerHLS.prototype.onError = function(event, data) {
