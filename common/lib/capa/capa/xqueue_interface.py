@@ -134,7 +134,7 @@ class XQueueInterface(object):
 
     def _http_post(self, url, data, files=None):
         try:
-            r = self.session.post(url, data=data, files=files)
+            r = self.session.post(url, data=data, files=files, timeout=(3.05, 5))
         except requests.exceptions.ConnectionError, err:
             log.error(err)
             return (1, 'cannot connect to server')
