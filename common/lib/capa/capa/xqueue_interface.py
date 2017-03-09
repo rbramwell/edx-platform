@@ -139,6 +139,10 @@ class XQueueInterface(object):
             log.error(err)
             return (1, 'cannot connect to server')
 
+        except requests.exceptions.ReadTimeout, err:
+            log.error(err)
+            return (1, 'Failed to read from the server')
+
         if r.status_code not in [200]:
             return (1, 'unexpected HTTP status code [%d]' % r.status_code)
 
