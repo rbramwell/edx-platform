@@ -22,6 +22,8 @@ class CourseHomePage(CoursePage):
         super(CourseHomePage, self).__init__(browser, course_id)
         self.course_id = course_id
         self.outline = CourseOutlinePage(browser, self)
+        # TODO: TNL-6546: Remove the following
+        self.unified_course_view = False
 
 
 class CourseOutlinePage(PageObject):
@@ -118,7 +120,7 @@ class CourseOutlinePage(PageObject):
         # Retrieve the subsection title for the section
         # Add one to the list index to get the CSS index, which starts at one
         subsection_css = (
-            # TNL-6387: Will need to switch to this selector for subsections
+            # TODO: TNL-6387: Will need to switch to this selector for subsections
             # ".outline-item.section:nth-of-type({0}) .subsection span:nth-of-type(1)"
             ".outline-item.section:nth-of-type({0}) .subsection a"
         ).format(section_index)
@@ -134,7 +136,23 @@ class CourseOutlinePage(PageObject):
         Ensures the user navigates to the course content page with the correct section and subsection.
         """
         course_nav = CourseNavPage(self.browser)
+
+        # TODO: TNL-6546: Remove this code regarding unified_course_view
+        #   First time through, we don't load with unified course view and it is reloaded below.
+        saved_unified_course_view = self.parent_page.unified_course_view
+        self.parent_page.unified_course_view = False
+
         self.wait_for(
             promise_check_func=lambda: course_nav.is_on_section(section_title, subsection_title),
             description="Waiting for course page with section '{0}' and subsection '{1}'".format(section_title, subsection_title)
         )
+
+        # TODO: TNL-6546: Remove the rest of this method
+        self.parent_page.unified_course_view = saved_unified_course_view
+        if self.parent_page.unified_course_view:
+            # reloads the page as the unified course view, so wait again.
+            course_nav.visit_unified_course_view()
+            self.wait_for(
+                promise_check_func=lambda: course_nav.is_on_section(section_title, subsection_title),
+                description="Waiting for course page with section '{0}' and subsection '{1}'".format(section_title, subsection_title)
+            )

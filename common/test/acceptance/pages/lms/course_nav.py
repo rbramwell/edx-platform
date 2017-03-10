@@ -15,8 +15,13 @@ class CourseNavPage(PageObject):
     url = None
 
     def is_browser_on_page(self):
-        return self.q(css='div.course-index').present
+        # TODO: TNL-6546: Remove if/else; always use unified_course_view version (if)
+        if self.unified_course_view:
+            return self.q(css='.sequence-nav').present
+        else:
+            return self.q(css='div.course-index').present
 
+    # TODO: TNL-6546: Remove method, outline no longer on courseware page
     @property
     def sections(self):
         """
@@ -60,6 +65,7 @@ class CourseNavPage(PageObject):
         seq_css = 'ol#sequence-list>li>.nav-item>.sequence-tooltip'
         return self.q(css=seq_css).map(self._clean_seq_titles).results
 
+    # TODO: TNL-6546: Remove method, outline no longer on courseware page
     def go_to_section(self, section_title, subsection_title):
         """
         Go to the section in the courseware.
@@ -129,6 +135,7 @@ class CourseNavPage(PageObject):
             # Click triggers an ajax event
             self.wait_for_ajax()
 
+    # TODO: TNL-6546: Remove method, outline no longer on courseware page
     def _section_titles(self):
         """
         Return a list of all section titles on the page.
@@ -136,6 +143,7 @@ class CourseNavPage(PageObject):
         chapter_css = '.course-navigation .chapter .group-heading'
         return self.q(css=chapter_css).map(lambda el: el.text.strip()).results
 
+    # TODO: TNL-6546: Remove method, outline no longer on courseware page
     def _subsection_titles(self, section_index):
         """
         Return a list of all subsection titles on the page
@@ -158,6 +166,7 @@ class CourseNavPage(PageObject):
             lambda el: el.text.strip().split('\n')[0] if el.is_displayed() else el.get_attribute('innerHTML').strip()
         ).results
 
+    # TODO: TNL-6546: Remove method, outline no longer on courseware page
     def _on_section_promise(self, section_title, subsection_title):
         """
         Return a `Promise` that is fulfilled when the user is on
@@ -174,29 +183,37 @@ class CourseNavPage(PageObject):
         Return a boolean indicating whether the user is on the section and subsection
         with the specified titles.
 
-        This assumes that the currently expanded section is the one we're on
-        That's true right after we click the section/subsection, but not true in general
-        (the user could go to a section, then expand another tab).
         """
-        # TODO: TNL-6546: This call is still needed, but it will need to be refactored
-        #   to use breadcrumbs or other metadata on the page.  Can we simply write the
-        #   section/subsection as data attributes to be used for testing?
-        current_section_list = self.q(css='.course-navigation .chapter.is-open .group-heading').text
-        current_subsection_list = self.q(css='.course-navigation .chapter-content-container .menu-item.active a p').text
+        # TODO: TNL-6546: Remove if/else; always use unified_course_view version (if)
+        if self.unified_course_view:
+            # breadcrumb location of form: "SECTION_TITLE > SUBSECTION_TITLE > SEQUENTIAL_TITLE"
+            bread_crumb_current = self.q(css='.position').text
+            if len(bread_crumb_current) != 1:
+                self.warning("Could not find the current bread crumb with section and subsection.")
+                return False
 
-        if len(current_section_list) == 0:
-            self.warning("Could not find the current section")
-            return False
-
-        elif len(current_subsection_list) == 0:
-            self.warning("Could not find current subsection")
-            return False
+            return bread_crumb_current[0].strip().startswith(section_title + ' > ' + subsection_title + ' > ')
 
         else:
-            return (
-                current_section_list[0].strip() == section_title and
-                current_subsection_list[0].strip().split('\n')[0] == subsection_title
-            )
+            # This assumes that the currently expanded section is the one we're on
+            # That's true right after we click the section/subsection, but not true in general
+            # (the user could go to a section, then expand another tab).
+            current_section_list = self.q(css='.course-navigation .chapter.is-open .group-heading').text
+            current_subsection_list = self.q(css='.course-navigation .chapter-content-container .menu-item.active a p').text
+
+            if len(current_section_list) == 0:
+                self.warning("Could not find the current section")
+                return False
+
+            elif len(current_subsection_list) == 0:
+                self.warning("Could not find current subsection")
+                return False
+
+            else:
+                return (
+                    current_section_list[0].strip() == section_title and
+                    current_subsection_list[0].strip().split('\n')[0] == subsection_title
+                )
 
     # Regular expression to remove HTML span tags from a string
     REMOVE_SPAN_TAG_RE = re.compile(r'</span>(.+)<span')
@@ -213,3 +230,16 @@ class CourseNavPage(PageObject):
         return the url of the active subsection in the left nav
         """
         return self.q(css='.chapter-content-container .menu-item.active a').attrs('href')[0]
+
+    # TODO: TNL-6546: Remove all references to self.unified_course_view
+    # TODO: TNL-6546: Remove the following function
+    def __init__(self, browser):
+        super(CourseNavPage, self).__init__(browser)
+        self.unified_course_view = False
+
+    # TODO: TNL-6546: Remove the following function
+    def visit_unified_course_view(self):
+        # use unified_course_view version of the nav
+        self.unified_course_view = True
+        # reload the same page with the unified course view
+        self.browser.get(self.browser.current_url + "&unified_course_view=1")

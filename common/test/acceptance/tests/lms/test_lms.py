@@ -635,7 +635,6 @@ class CourseWikiTest(UniqueCourseTest):
         children_page.a11y_audit.check_for_accessibility_errors()
 
 
-@attr(shard=1)
 class HighLevelTabTest(UniqueCourseTest):
     """
     Tests that verify each of the high-level tabs available within a course.
@@ -652,6 +651,7 @@ class HighLevelTabTest(UniqueCourseTest):
 
         self.course_info_page = CourseInfoPage(self.browser, self.course_id)
         self.progress_page = ProgressPage(self.browser, self.course_id)
+        self.course_home = CourseHomePage(self.browser, self.course_id)
         self.course_nav = CourseNavPage(self.browser)
         self.tab_nav = TabNavPage(self.browser)
         self.video = VideoPage(self.browser)
@@ -686,6 +686,7 @@ class HighLevelTabTest(UniqueCourseTest):
         # Auto-auth register for the course
         AutoAuthPage(self.browser, course_id=self.course_id).visit()
 
+    @attr(shard=1)
     def test_course_info(self):
         """
         Navigate to the course info page.
@@ -703,6 +704,7 @@ class HighLevelTabTest(UniqueCourseTest):
         self.assertEqual(len(handout_links), 1)
         self.assertIn('demoPDF.pdf', handout_links[0])
 
+    @attr(shard=1)
     def test_progress(self):
         """
         Navigate to the progress page.
@@ -720,6 +722,7 @@ class HighLevelTabTest(UniqueCourseTest):
         actual_scores = self.progress_page.scores(CHAPTER, SECTION)
         self.assertEqual(actual_scores, EXPECTED_SCORES)
 
+    @attr(shard=1)
     def test_static_tab(self):
         """
         Navigate to a static tab (course content)
@@ -729,6 +732,7 @@ class HighLevelTabTest(UniqueCourseTest):
         self.tab_nav.go_to_tab('Test Static Tab')
         self.assertTrue(self.tab_nav.is_on_tab('Test Static Tab'))
 
+    @attr(shard=1)
     def test_static_tab_with_mathjax(self):
         """
         Navigate to a static tab (course content)
@@ -741,6 +745,7 @@ class HighLevelTabTest(UniqueCourseTest):
         # Verify that Mathjax has rendered
         self.tab_nav.mathjax_has_rendered()
 
+    @attr(shard=1)
     def test_wiki_tab_first_time(self):
         """
         Navigate to the course wiki tab. When the wiki is accessed for
@@ -761,7 +766,8 @@ class HighLevelTabTest(UniqueCourseTest):
         )
         self.assertEqual(expected_article_name, course_wiki.article_name)
 
-    # TODO: TNL-6546: This whole function will be able to go away, replaced by test_course_outline below.
+    # TODO: TNL-6546: This whole function will be able to go away, replaced by test_course_home below.
+    @attr(shard=1)
     def test_courseware_nav(self):
         """
         Navigate to a particular unit in the course.
@@ -797,32 +803,25 @@ class HighLevelTabTest(UniqueCourseTest):
         self.course_nav.go_to_section('Test Section 2', 'Test Subsection 3')
         self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
 
-    # def test_course_home(self):
-    #     """
-    #     Navigate to the course home page using the tab.
-    #     """
-    #     # TODO: TNL-6546: Remove override_flag.
-    #     from waffle.testutils import override_flag
-    #     # ERROR: Import results in the following error:
-    #     # - ImproperlyConfigured: Requested setting CACHES, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.
-    #     with override_flag('unified_course_view', active=True):
-    #         self.course_info_page.visit()
-    #         self.tab_nav.go_to_tab('Course')
-    #         course_home = CourseHomePage(self.browser, self.course_id)
-    #
-    #         course_home.is_browser_on_page()
-
+    @attr(shard=1)
     def test_course_home(self):
         """
         Navigate to the course home page using the tab.
+
+        Includes smoke test of course outline, courseware page, and breadcrumbs.
+
         """
         # TODO: TNL-6546: Use tab navigation and remove course_home.visit().
         #self.course_info_page.visit()
         #self.tab_nav.go_to_tab('Course')
-        course_home = CourseHomePage(self.browser, self.course_id)
-        course_home.visit()
+        self.course_home.visit()
 
-# TODO: Move this to a separate CourseHomeTests
+        # TODO: TNL-6546: Remove unified_course_view.
+        self.course_home.unified_course_view = True
+        self.course_nav.unified_course_view = True
+
+        # Check that the tab lands on the course home page.
+        self.assertTrue(self.course_home.is_browser_on_page())
 
         # Check that the course navigation appears correctly
         EXPECTED_SECTIONS = {
@@ -830,16 +829,15 @@ class HighLevelTabTest(UniqueCourseTest):
             'Test Section 2': ['Test Subsection 2', 'Test Subsection 3']
         }
 
-        actual_sections = course_home.outline.sections
-
+        actual_sections = self.course_home.outline.sections
         for section, subsections in EXPECTED_SECTIONS.iteritems():
             self.assertIn(section, actual_sections)
             self.assertEqual(actual_sections[section], EXPECTED_SECTIONS[section])
 
         # Navigate to a particular section
-        course_home.outline.go_to_section('Test Section', 'Test Subsection')
+        self.course_home.outline.go_to_section('Test Section', 'Test Subsection')
 
-        # Check the sequence items
+        # Check the sequence items on the courseware page
         EXPECTED_ITEMS = ['Test Problem 1', 'Test Problem 2', 'Test HTML']
 
         actual_items = self.course_nav.sequence_items
@@ -847,10 +845,18 @@ class HighLevelTabTest(UniqueCourseTest):
         for expected in EXPECTED_ITEMS:
             self.assertIn(expected, actual_items)
 
+        # Use breadcrumbs to get back to course home page.
+        # TODO: Robert: Implement and use new bookmark code
+        self.course_home.visit()
+
         # Navigate to a particular section other than the default landing section.
-        course_home.visit()
-        course_home.outline.go_to_section('Test Section 2', 'Test Subsection 3')
+        self.course_home.outline.go_to_section('Test Section 2', 'Test Subsection 3')
         self.assertTrue(self.course_nav.is_on_section('Test Section 2', 'Test Subsection 3'))
+
+    @attr('a11y')
+    def test_course_home_a11y(self):
+        self.course_home.visit()
+        self.course_home.a11y_audit.check_for_accessibility_errors()
 
 
 @attr(shard=1)
@@ -1448,6 +1454,6 @@ class CourseInfoA11yTest(UniqueCourseTest):
         self.course_info_page = CourseInfoPage(self.browser, self.course_id)
         AutoAuthPage(self.browser, course_id=self.course_id).visit()
 
-    def test_course_home_a11y(self):
+    def test_course_info_a11y(self):
         self.course_info_page.visit()
         self.course_info_page.a11y_audit.check_for_accessibility_errors()
