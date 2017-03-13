@@ -12,7 +12,7 @@ def compare_scores(earned1, possible1, earned2, possible2):
     """
     percentage1 = float(earned1) / float(possible1)
     percentage2 = float(earned2) / float(possible2)
-    is_higher = percentage2 > percentage1
+    is_higher = percentage2 >= percentage1
     return is_higher, percentage1, percentage2
 
 
