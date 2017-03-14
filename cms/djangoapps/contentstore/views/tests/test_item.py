@@ -341,13 +341,13 @@ class GetItemTest(ItemTest):
     def test_get_user_partitions_and_groups(self):
         self.course.user_partitions = [
             UserPartition(
-                id=0,
+                id=100,
                 name="Verification user partition",
                 scheme=UserPartition.get_scheme("verification"),
                 description="Verification user partition",
                 groups=[
-                    Group(id=0, name="Group A"),
-                    Group(id=1, name="Group B"),
+                    Group(id=101, name="Group A"),
+                    Group(id=102, name="Group B"),
                 ],
             ),
         ]
@@ -364,17 +364,30 @@ class GetItemTest(ItemTest):
         self.assertEqual(result["user_partitions"], [
             {
                 "id": 0,
+                "name": "Enrollment Track Partition",
+                "scheme": "enrollment_track",
+                "groups": [
+                    {
+                        "id": 1,
+                        "name": "Audit",
+                        "selected": False,
+                        "deleted": False,
+                    }
+                ]
+            },
+            {
+                "id": 100,
                 "name": "Verification user partition",
                 "scheme": "verification",
                 "groups": [
                     {
-                        "id": 0,
+                        "id": 101,
                         "name": "Group A",
                         "selected": False,
                         "deleted": False,
                     },
                     {
-                        "id": 1,
+                        "id": 102,
                         "name": "Group B",
                         "selected": False,
                         "deleted": False,

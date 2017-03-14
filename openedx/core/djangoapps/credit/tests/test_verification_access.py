@@ -80,8 +80,9 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         self._update_partitions()
 
         # Check that a new user partition was created for the ICRV block
-        self.assertEqual(len(self.course.user_partitions), 1)
-        partition = self.course.user_partitions[0]
+        # One partition (the enrollment track partition) already exists.
+        self.assertEqual(len(self.course.user_partitions), 2)
+        partition = self.course.user_partitions[1]
         self.assertEqual(partition.scheme.name, "verification")
         self.assertEqual(partition.parameters["location"], unicode(self.icrv.location))
 
@@ -108,8 +109,9 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         self._update_partitions()
 
         # Check that the user partition was marked as inactive
-        self.assertEqual(len(self.course.user_partitions), 1)
-        partition = self.course.user_partitions[0]
+        # One partition (the enrollment track partition) already exists.
+        self.assertEqual(len(self.course.user_partitions), 2)
+        partition = self.course.user_partitions[1]
         self.assertFalse(partition.active)
         self.assertEqual(partition.scheme.name, "verification")
 
@@ -126,23 +128,23 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         # Add other, non-verified partition to the course
         self.course.user_partitions = [
             UserPartition(
-                id=0,
+                id=10,
                 name='Cohort user partition',
                 scheme=UserPartition.get_scheme('cohort'),
                 description='Cohorted user partition',
                 groups=[
-                    Group(id=0, name="Group A"),
-                    Group(id=1, name="Group B"),
+                    Group(id=100, name="Group A"),
+                    Group(id=101, name="Group B"),
                 ],
             ),
             UserPartition(
-                id=1,
+                id=11,
                 name='Random user partition',
                 scheme=UserPartition.get_scheme('random'),
                 description='Random user partition',
                 groups=[
-                    Group(id=0, name="Group A"),
-                    Group(id=1, name="Group B"),
+                    Group(id=102, name="Group A"),
+                    Group(id=103, name="Group B"),
                 ],
             ),
         ]
@@ -152,9 +154,9 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         # The existing partitions should still be available
         self._update_partitions()
         partition_ids = [p.id for p in self.course.user_partitions]
-        self.assertEqual(len(partition_ids), 3)
-        self.assertIn(0, partition_ids)
-        self.assertIn(1, partition_ids)
+        self.assertEqual(len(partition_ids), 4)
+        self.assertIn(10, partition_ids)
+        self.assertIn(11, partition_ids)
 
     def test_multiple_reverification_blocks(self):
         # Add an additional ICRV block in another section
@@ -162,7 +164,8 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         self._update_partitions()
 
         # Expect that both ICRV blocks have corresponding partitions
-        self.assertEqual(len(self.course.user_partitions), 2)
+        # One partition (the enrollment track partition) already exists.
+        self.assertEqual(len(self.course.user_partitions), 3)
         partition_locations = [p.parameters.get("location") for p in self.course.user_partitions]
         self.assertIn(unicode(self.icrv.location), partition_locations)
         self.assertIn(unicode(other_icrv.location), partition_locations)
@@ -177,10 +180,10 @@ class CreateVerificationPartitionTest(ModuleStoreTestCase):
         self._update_partitions()
 
         # Expect that the correct partition is marked as inactive
-        self.assertEqual(len(self.course.user_partitions), 2)
+        self.assertEqual(len(self.course.user_partitions), 3)
         partitions_by_loc = {
             p.parameters["location"]: p
-            for p in self.course.user_partitions
+            for p in (self.course.user_partitions[1], self.course.user_partitions[2])
         }
         self.assertFalse(partitions_by_loc[unicode(icrv_location)].active)
         self.assertTrue(partitions_by_loc[unicode(other_icrv.location)].active)
@@ -258,8 +261,8 @@ class WriteOnPublishTest(ModuleStoreTestCase):
 
     @patch.dict(settings.FEATURES, {"ENABLE_COURSEWARE_INDEX": False})
     def test_can_write_on_publish_signal(self):
-        # Sanity check -- initially user partitions should be empty
-        self.assertEqual(self.course.user_partitions, [])
+        # Sanity check -- initially user partitions should only be the enrollment one
+        self.assertEqual(len(self.course.user_partitions), 1)
 
         # Make and publish a change to a block, which should trigger the publish signal
         with self.store.bulk_operations(self.course.id):  # pylint: disable=no-member
@@ -272,4 +275,4 @@ class WriteOnPublishTest(ModuleStoreTestCase):
         # should have been created.
         # We need to verify that these changes were actually persisted to the modulestore.
         retrieved_course = self.store.get_course(self.course.id)  # pylint: disable=no-member
-        self.assertEqual(len(retrieved_course.user_partitions), 1)
+        self.assertEqual(len(retrieved_course.user_partitions), 2)

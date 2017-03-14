@@ -225,6 +225,7 @@ class CourseEndingTest(TestCase):
 
 
 @ddt.ddt
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
 class DashboardTest(ModuleStoreTestCase):
     """
     Tests for dashboard utility functions
@@ -238,7 +239,6 @@ class DashboardTest(ModuleStoreTestCase):
         self.client = Client()
         cache.clear()
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def _check_verification_status_on(self, mode, value):
         """
         Check that the css class and the status message are in the dashboard html.
@@ -275,7 +275,6 @@ class DashboardTest(ModuleStoreTestCase):
             'You&#39;re enrolled as a professional education student',
         )
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def _check_verification_status_off(self, mode, value):
         """
         Check that the css class and the status message are not in the dashboard html.
@@ -328,7 +327,6 @@ class DashboardTest(ModuleStoreTestCase):
         self.assertFalse(course_mode_info['show_upsell'])
         self.assertIsNone(course_mode_info['days_for_upsell'])
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     @patch('courseware.views.index.log.warning')
     @patch.dict('django.conf.settings.FEATURES', {'ENABLE_PAID_COURSE_REGISTRATION': True})
     def test_blocked_course_scenario(self, log_warning):
@@ -393,7 +391,6 @@ class DashboardTest(ModuleStoreTestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertNotIn('You can no longer access this course because payment has not yet been received', response.content)
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_linked_in_add_to_profile_btn_not_appearing_without_config(self):
         # Without linked-in config don't show Add Certificate to LinkedIn button
         self.client.login(username="jack", password="test")
@@ -429,7 +426,6 @@ class DashboardTest(ModuleStoreTestCase):
         response_url = 'http://www.linkedin.com/profile/add?_ed='
         self.assertNotContains(response, escape(response_url))
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     @patch.dict('django.conf.settings.FEATURES', {'CERTIFICATES_HTML_VIEW': False})
     def test_linked_in_add_to_profile_btn_with_certificate(self):
         # If user has a certificate with valid linked-in config then Add Certificate to LinkedIn button
@@ -479,7 +475,6 @@ class DashboardTest(ModuleStoreTestCase):
 
         self.assertContains(response, escape(expected_url))
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     @ddt.data(ModuleStoreEnum.Type.mongo, ModuleStoreEnum.Type.split)
     def test_dashboard_metadata_caching(self, modulestore_type):
         """
@@ -516,7 +511,6 @@ class DashboardTest(ModuleStoreTestCase):
             response_2 = self.client.get(reverse('dashboard'))
             self.assertEquals(response_2.status_code, 200)
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_dashboard_header_nav_has_find_courses(self):
         self.client.login(username="jack", password="test")
         response = self.client.get(reverse("dashboard"))
@@ -678,10 +672,10 @@ class EnrollmentEventTestMixin(EventTestMixin):
         self.mock_tracker.reset_mock()
 
 
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
 class EnrollInCourseTest(EnrollmentEventTestMixin, CacheIsolationTestCase):
     """Tests enrolling and unenrolling in courses."""
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_enrollment(self):
         user = User.objects.create_user("joe", "joe@joe.com", "password")
         course_id = SlashSeparatedCourseKey("edX", "Test101", "2013")
@@ -745,7 +739,6 @@ class EnrollInCourseTest(EnrollmentEventTestMixin, CacheIsolationTestCase):
         self.assertTrue(CourseEnrollment.is_enrolled(user, course_id))
         self.assert_enrollment_event_was_emitted(user, course_id)
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_enrollment_by_email(self):
         user = User.objects.create(username="jack", email="jack@fake.edx.org")
         course_id = SlashSeparatedCourseKey("edX", "Test101", "2013")
@@ -783,7 +776,6 @@ class EnrollInCourseTest(EnrollmentEventTestMixin, CacheIsolationTestCase):
         CourseEnrollment.unenroll_by_email("not_jack@fake.edx.org", course_id)
         self.assert_no_events_were_emitted()
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_enrollment_multiple_classes(self):
         user = User(username="rusty", email="rusty@fake.edx.org")
         course_id1 = SlashSeparatedCourseKey("edX", "Test101", "2013")
@@ -806,7 +798,6 @@ class EnrollInCourseTest(EnrollmentEventTestMixin, CacheIsolationTestCase):
         self.assertFalse(CourseEnrollment.is_enrolled(user, course_id1))
         self.assertFalse(CourseEnrollment.is_enrolled(user, course_id2))
 
-    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_activation(self):
         user = User.objects.create(username="jack", email="jack@fake.edx.org")
         course_id = SlashSeparatedCourseKey("edX", "Test101", "2013")
@@ -944,6 +935,7 @@ class ChangeEnrollmentViewTest(ModuleStoreTestCase):
         self.assertEqual(enrollment_mode, CourseMode.DEFAULT_MODE_SLUG)
 
 
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
 class AnonymousLookupTable(ModuleStoreTestCase):
     """
     Tests for anonymous_id_functions

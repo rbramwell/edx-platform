@@ -3,6 +3,8 @@ Tests for the Credit xBlock service
 """
 
 import ddt
+from django.conf import settings
+import unittest
 from nose.plugins.attrib import attr
 from course_modes.models import CourseMode
 
@@ -18,6 +20,7 @@ from student.models import CourseEnrollment, UserProfile
 
 @attr(shard=2)
 @ddt.ddt
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Not valid in CMS (verified track cohorting table DNE)')
 class CreditServiceTests(ModuleStoreTestCase):
     """
     Tests for the Credit xBlock service

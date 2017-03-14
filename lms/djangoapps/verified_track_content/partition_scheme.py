@@ -1,9 +1,6 @@
 """
 UserPartitionScheme for enrollment tracks.
 """
-
-from django.utils.translation import ugettext as _
-
 from courseware.masquerade import (  # pylint: disable=import-error
     get_course_masquerade,
     get_masquerading_group_info,
@@ -12,7 +9,6 @@ from courseware.masquerade import (  # pylint: disable=import-error
 from course_modes.models import CourseMode
 from student.models import CourseEnrollment
 from opaque_keys.edx.keys import CourseKey
-from verified_track_content.models import VerifiedTrackCohortedCourse
 from xmodule.partitions.partitions import NoSuchUserPartitionGroupError, Group, UserPartition
 
 
@@ -39,6 +35,24 @@ class EnrollmentTrackUserPartition(UserPartition):
             all_groups.append(group)
 
         return all_groups
+
+    def to_json(self):
+        """
+        'Serialize' to a json-serializable representation.
+
+        Returns:
+            a dictionary with keys for the properties of the partition.
+        """
+        return {
+            "id": self.id,
+            "name": self.name,
+            "scheme": self.scheme.name,
+            "description": self.description,
+            "parameters": self.parameters,
+            "groups": [],  # Groups are obtained dynamically, so we don't need to persist them.
+            "active": bool(self.active),
+            "version": UserPartition.VERSION
+        }
 
 
 class EnrollmentTrackPartitionScheme(object):
@@ -69,7 +83,7 @@ class EnrollmentTrackPartitionScheme(object):
             # The user is masquerading as a generic student. We can't show any particular group.
             return None
 
-        if cls._is_course_using_cohort_instead(course_key):
+        if is_course_using_cohort_instead(course_key):
             return None
         mode_slug, is_active = CourseEnrollment.enrollment_mode_for_user(user, course_key)
         if mode_slug and is_active:
@@ -84,10 +98,11 @@ class EnrollmentTrackPartitionScheme(object):
     def create_user_partition(cls, id, name, description, groups=None, parameters=None, active=True):
         return EnrollmentTrackUserPartition(id, name, description, [], cls, parameters, active)
 
-    @classmethod
-    def _is_course_using_cohort_instead(cls, course_key):
-         """
-         Returns whether the given course_context is using verified-track cohorts
-         and therefore shouldn't use a track-based partition.
-         """
-         return VerifiedTrackCohortedCourse.is_verified_track_cohort_enabled(course_key)
+
+def is_course_using_cohort_instead(course_key):
+    """
+    Returns whether the given course_context is using verified-track cohorts
+    and therefore shouldn't use a track-based partition.
+    """
+    from verified_track_content.models import VerifiedTrackCohortedCourse
+    return VerifiedTrackCohortedCourse.is_verified_track_cohort_enabled(course_key)
