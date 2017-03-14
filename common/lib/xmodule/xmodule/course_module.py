@@ -919,7 +919,7 @@ class CourseDescriptor(CourseFields, SequenceDescriptor, LicenseMixin):
                         description=_(u"Partition for segmenting users by enrollment track"),
                         parameters={"course_id": unicode(self.id)}
                     )
-                )
+                 )
 
         except UserPartitionError:
             log.warning(

@@ -25,7 +25,7 @@ class VerificationTrackUserPartitionTest(SharedModuleStoreTestCase):
     def test_only_default_mode(self):
         groups = self.user_partition.groups
         self.assertEqual(1, len(groups))
-        self.assertEqual("audit", groups[0].name)
+        self.assertEqual("Audit", groups[0].name)
 
     def test_multiple_groups(self):
         self.create_mode(CourseMode.AUDIT, "Audit Enrollment Track", min_price=0)
@@ -34,7 +34,7 @@ class VerificationTrackUserPartitionTest(SharedModuleStoreTestCase):
 
         groups = self.user_partition.groups
         self.assertEqual(3, len(groups))
-        self.assertEqual("audit", groups[0].name)
+        self.assertEqual("Audit Enrollment Track", groups[0].name)
 
 
     def create_mode(self, mode_slug, mode_name, min_price=0):

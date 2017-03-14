@@ -35,7 +35,7 @@ class EnrollmentTrackUserPartition(UserPartition):
         course_key = CourseKey.from_string(self.parameters["course_id"]).for_branch(None)
         all_groups = []
         for mode in CourseMode.all_modes_for_courses([course_key])[course_key]:
-            group = Group(ENROLLMENT_GROUP_IDS[mode.slug], mode.name)
+            group = Group(ENROLLMENT_GROUP_IDS[mode.slug], unicode(mode.name))
             all_groups.append(group)
 
         return all_groups
@@ -76,7 +76,7 @@ class EnrollmentTrackPartitionScheme(object):
             course_mode = CourseMode.mode_for_course(course_key, mode_slug)
             if not course_mode:
                 course_mode = CourseMode.DEFAULT_MODE
-            return Group(ENROLLMENT_GROUP_IDS[course_mode.slug], course_mode.name)
+            return Group(ENROLLMENT_GROUP_IDS[course_mode.slug], unicode(course_mode.name))
         else:
             return None
 
