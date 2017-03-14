@@ -217,7 +217,7 @@ class VideoModule(VideoFields, VideoTranscriptsMixin, VideoStudentViewHandlers, 
         # stream.
         if self.edx_video_id and edxval_api:
             try:
-                val_profiles = ["youtube", "desktop_webm", "desktop_mp4"]
+                val_profiles = ["youtube", "desktop_webm", "desktop_mp4", "hls"]
 
                 # strip edx_video_id to prevent ValVideoNotFoundError error if unwanted spaces are there. TNL-5769
                 val_video_urls = edxval_api.get_urls_for_profiles(self.edx_video_id.strip(), val_profiles)
@@ -232,7 +232,8 @@ class VideoModule(VideoFields, VideoTranscriptsMixin, VideoStudentViewHandlers, 
                     if url:
                         if url not in sources:
                             sources.append(url)
-                        if self.download_video:
+                        # don't include hls urls for download
+                        if self.download_video and not url.endswith('.m3u8'):
                             # function returns None when the url cannot be re-written
                             rewritten_link = rewrite_video_url(cdn_url, url)
                             if rewritten_link:
