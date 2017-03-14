@@ -36,23 +36,24 @@ class EnrollmentTrackUserPartition(UserPartition):
 
         return all_groups
 
-    def to_json(self):
-        """
-        'Serialize' to a json-serializable representation.
-
-        Returns:
-            a dictionary with keys for the properties of the partition.
-        """
-        return {
-            "id": self.id,
-            "name": self.name,
-            "scheme": self.scheme.name,
-            "description": self.description,
-            "parameters": self.parameters,
-            "groups": [],  # Groups are obtained dynamically, so we don't need to persist them.
-            "active": bool(self.active),
-            "version": UserPartition.VERSION
-        }
+    # # TODO: add test if this method stays in
+    # def to_json(self):
+    #     """
+    #     'Serialize' to a json-serializable representation.
+    #
+    #     Returns:
+    #         a dictionary with keys for the properties of the partition.
+    #     """
+    #     return {
+    #         "id": self.id,
+    #         "name": self.name,
+    #         "scheme": self.scheme.name,
+    #         "description": self.description,
+    #         "parameters": self.parameters,
+    #         "groups": [],  # Groups are obtained dynamically, so we don't need to persist them.
+    #         "active": bool(self.active),
+    #         "version": UserPartition.VERSION
+    #     }
 
 
 class EnrollmentTrackPartitionScheme(object):
