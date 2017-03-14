@@ -911,7 +911,7 @@ class CourseDescriptor(CourseFields, SequenceDescriptor, LicenseMixin):
             verification_track_scheme = UserPartition.get_scheme("enrollment_track")
             if len(self.get_user_partitions_for_scheme(verification_track_scheme)) == 0:
                 used_ids = set(p.id for p in self.user_partitions)
-                max_id = 1 if len(used_ids) == 0 else max(used_ids)
+                max_id = 0 if len(used_ids) == 0 else max(used_ids)
                 self.user_partitions.append(
                     verification_track_scheme.create_user_partition(
                         id=max_id + 1,

@@ -15,17 +15,17 @@ from opaque_keys.edx.keys import CourseKey
 from verified_track_content.models import VerifiedTrackCohortedCourse
 from xmodule.partitions.partitions import NoSuchUserPartitionGroupError, Group, UserPartition
 
-# TODO: how to make sure IDs are unique across all partitions?
-# Note that course-specific display names will be set by the EnrollmentTrackUserPartition
-ENROLLMENT_GROUPS = {
-    CourseMode.HONOR: Group(91111, CourseMode.HONOR),
-    CourseMode.PROFESSIONAL: Group(91112, CourseMode.PROFESSIONAL),
-    CourseMode.VERIFIED: Group(91113, CourseMode.VERIFIED),
-    CourseMode.AUDIT: Group(91114, CourseMode.AUDIT),
-    CourseMode.NO_ID_PROFESSIONAL_MODE: Group(91115, CourseMode.NO_ID_PROFESSIONAL_MODE),
-    CourseMode.CREDIT_MODE: Group(91116, CourseMode.CREDIT_MODE)
-}
 
+# These IDs are guaranteed to not overlap with Groups in the CohortUserPartition or the RandomUserPartitionScheme
+# because CMS' course_group_config uses a minimum value of 100 for all generated IDs.
+ENROLLMENT_GROUP_IDS = {
+    CourseMode.AUDIT: 1,
+    CourseMode.VERIFIED: 2,
+    CourseMode.PROFESSIONAL: 3,
+    CourseMode.NO_ID_PROFESSIONAL_MODE: 4,
+    CourseMode.CREDIT_MODE: 5,
+    CourseMode.HONOR: 6
+}
 
 class EnrollmentTrackUserPartition(UserPartition):
 
@@ -35,8 +35,7 @@ class EnrollmentTrackUserPartition(UserPartition):
         course_key = CourseKey.from_string(self.parameters["course_id"]).for_branch(None)
         all_groups = []
         for mode in CourseMode.all_modes_for_courses([course_key])[course_key]:
-            group = ENROLLMENT_GROUPS[mode.slug]
-            # group.name = mode.name
+            group = Group(ENROLLMENT_GROUP_IDS[mode.slug], mode.name)
             all_groups.append(group)
 
         return all_groups
@@ -76,10 +75,8 @@ class EnrollmentTrackPartitionScheme(object):
         if mode_slug and is_active:
             course_mode = CourseMode.mode_for_course(course_key, mode_slug)
             if not course_mode:
-                # TODO: is this the right thing to return if the learner is in a course mode that
-                # doesn't actually exist for the course? Possible on devstack/sandbox.
-                course_mode = CourseMode.default_mode(course_key)
-            return ENROLLMENT_GROUPS[course_mode.slug]
+                course_mode = CourseMode.DEFAULT_MODE
+            return Group(ENROLLMENT_GROUP_IDS[course_mode.slug], course_mode.name)
         else:
             return None
 

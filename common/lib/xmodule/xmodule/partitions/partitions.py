@@ -224,5 +224,7 @@ class UserPartition(namedtuple("UserPartition", "id name description groups sche
                 return group
 
         raise NoSuchUserPartitionGroupError(
-            "could not find a Group with ID [{}] in UserPartition [{}]".format(group_id, self.id)
+            "could not find a Group with ID [{group_id}] in UserPartition [{partition_id}]".format(
+                group_id=group_id, partition_id=self.id
+            )
         )
