@@ -18,6 +18,7 @@ XQUEUE_TIMEOUT = 35  # seconds
 CONNECT_TIMEOUT = 3.05
 READ_TIMEOUT = 10
 
+
 def make_hashkey(seed):
     """
     Generate a string key by hashing
@@ -135,7 +136,8 @@ class XQueueInterface(object):
 
     def _http_post(self, url, data, files=None):
         try:
-            r = self.session.post(url, data=data, files=files, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))  # pylint: disable=invalid-name
+            response = self.session.post(url, data=data, files=files,
+                                         timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
         except requests.exceptions.ConnectionError, err:
             log.error(err)
             return (1, 'cannot connect to server')
@@ -144,7 +146,7 @@ class XQueueInterface(object):
             log.error(err)
             return (1, 'Failed to read from the server')
 
-        if r.status_code not in [200]:
+        if response.status_code not in [200]:
             return (1, 'unexpected HTTP status code [%d]' % r.status_code)
 
-        return parse_xreply(r.text)
+        return parse_xreply(response.text)

@@ -5,6 +5,7 @@ Tests of the Capa XModule
 # pylint: disable=missing-docstring
 # pylint: disable=invalid-name
 
+import requests
 import datetime
 import json
 import random
@@ -241,6 +242,21 @@ class CapaModuleTest(unittest.TestCase):
         # not visible.
         problem = CapaFactory.create()
         self.assertFalse(problem.answer_available())
+
+    @ddt.data(
+        (requests.exceptions.ReadTimeout, (1, 'Failed to read from the server')),
+        (requests.exceptions.ConnectionError, (1, 'cannot connect to server')),
+    )
+    @ddt.unpack
+    def test_timeout_exceptions(self, exception, result):
+        """
+        Makes sure that platform will raise appropriate exception
+        in case of connect/read timeout(s) to request to xqueue
+        """
+        xqueue_interface = XQueueInterface("http://example.com/xqueue", Mock())
+        with patch.object(xqueue_interface.session, 'post', side_effect=exception):
+            response= xqueue_interface._http_post('http://some/fake/url', {})
+            self.assertEqual(response, result)
 
     def test_showanswer_attempted(self):
         problem = CapaFactory.create(showanswer='attempted')
