@@ -46,7 +46,8 @@
             };
 
             ResponseCommentView.prototype.initialize = function(options) {
-                this.options = options
+                this.options = options;
+                this.startHeader = options.startHeader;
                 return ResponseCommentView.__super__.initialize.call(this);
             };
 
@@ -86,7 +87,7 @@
                     }
                     this.editView = new ResponseCommentEditView({
                         model: this.model,
-                        mode: this.options.mode
+                        startHeader: this.startHeader
                     });
                     this.editView.bind('comment:update', this.update);
                     this.editView.bind('comment:cancel_edit', this.cancelEdit);

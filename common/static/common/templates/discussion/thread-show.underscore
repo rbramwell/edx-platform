@@ -17,12 +17,7 @@
             </div>
         <% } %>
         <div class="post-header-content">
-            <% if (mode === "inline") {%>
-                <h4 class="post-title"><%- title %></h4>
-            <% } else { %>
-                <h2 class="post-title"><%- title %></h2>
-            <% } %>
-
+            <h<%- startHeader %> class="post-title"><%- title %></h<%- startHeader%>>
             <p class="posted-details">
             <%
             var timeAgoHtml = interpolate(

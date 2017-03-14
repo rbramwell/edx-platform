@@ -41,7 +41,8 @@
             };
 
             ResponseCommentEditView.prototype.render = function() {
-                var context = $.extend({mode: this.options.mode}, this.model.attributes);
+                var context = $.extend({mode: this.options.mode, startHeader: this.options.startHeader},
+                    this.model.attributes);
                 this.template = _.template($('#response-comment-edit-template').html());
                 this.$el.html(this.template(context));
                 this.delegateEvents();

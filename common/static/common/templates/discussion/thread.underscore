@@ -24,11 +24,7 @@
             </div>
             <% if (can_create_comment && !readOnly) { %>
             <form class="discussion-reply-new" data-id="<%- id %>">
-                <% if (this.options.mode === "inline") {%>
-                    <h5 class="add-response"><%- gettext("Add a response:") %></h5>
-                <% } else { %>
-                    <h3 class="add-response"><%- gettext("Add a response:") %></h3>
-                <% } %>
+                <h<%- startHeader %> class="add-response"><%- gettext("Add a response:") %></h<%- startHeader + 1%> >
 
                 <ul class="discussion-errors"></ul>
                 <div class="reply-body" data-id="<%- id %>"></div>

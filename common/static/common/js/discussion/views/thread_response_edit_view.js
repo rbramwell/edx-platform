@@ -37,11 +37,13 @@
 
             ThreadResponseEditView.prototype.initialize = function(options) {
                 this.options = options;
+                this.startHeader = options.startHeader;
                 return ThreadResponseEditView.__super__.initialize.call(this);
             };
 
             ThreadResponseEditView.prototype.render = function() {
-                var context = $.extend({mode: this.options.mode}, this.model.attributes);
+                var context = $.extend({mode: this.options.mode, startHeader: this.options.startHeader},
+                    this.model.attributes);
                 this.template = _.template($('#thread-response-edit-template').html());
                 this.$el.html(this.template(context));
                 this.delegateEvents();

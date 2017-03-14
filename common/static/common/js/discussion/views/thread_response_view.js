@@ -60,7 +60,7 @@
 
             ThreadResponseView.prototype.initialize = function(options) {
                 this.options = options;
-                this.mode = options.mode;
+                this.startHeader = options.startHeader;
                 this.collapseComments = options.collapseComments;
                 this.createShowView();
                 this.readOnly = $('.discussion-module').data('read-only');
@@ -158,7 +158,7 @@
                 comment.set('thread', this.model.get('thread'));
                 view = new ResponseCommentView({
                     model: comment,
-                    mode: this.mode
+                    startHeader: this.startHeader
                 });
                 view.render();
                 if (this.readOnly) {
@@ -250,7 +250,7 @@
                 } else {
                     this.editView = new ThreadResponseEditView({
                         model: this.model,
-                        mode: this.mode
+                        startHeader: this.startHeader
                     });
                     this.editView.bind('response:update', this.update);
                     return this.editView.bind('response:cancel_edit', this.cancelEdit);
