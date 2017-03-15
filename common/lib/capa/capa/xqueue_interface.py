@@ -136,8 +136,9 @@ class XQueueInterface(object):
 
     def _http_post(self, url, data, files=None):
         try:
-            response = self.session.post(url, data=data, files=files,
-                                         timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
+            response = self.session.post(
+                url, data=data, files=files, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT)
+            )
         except requests.exceptions.ConnectionError, err:
             log.error(err)
             return (1, 'cannot connect to server')
@@ -147,6 +148,6 @@ class XQueueInterface(object):
             return (1, 'Failed to read from the server')
 
         if response.status_code not in [200]:
-            return (1, 'unexpected HTTP status code [%d]' % r.status_code)
+            return (1, 'unexpected HTTP status code [%d]' % response.status_code)
 
         return parse_xreply(response.text)

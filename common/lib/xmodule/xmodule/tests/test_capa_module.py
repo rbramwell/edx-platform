@@ -248,14 +248,14 @@ class CapaModuleTest(unittest.TestCase):
         (requests.exceptions.ConnectionError, (1, 'cannot connect to server')),
     )
     @ddt.unpack
-    def test_timeout_exceptions(self, exception, result):
+    def test_xqueue_request_exception(self, exception, result):
         """
-        Makes sure that platform will raise appropriate exception
-        in case of connect/read timeout(s) to request to xqueue
+        Makes sure that platform will raise appropriate exception in case of
+        connect/read timeout(s) to request to xqueue
         """
         xqueue_interface = XQueueInterface("http://example.com/xqueue", Mock())
         with patch.object(xqueue_interface.session, 'post', side_effect=exception):
-            response= xqueue_interface._http_post('http://some/fake/url', {})
+            response = xqueue_interface._http_post('http://some/fake/url', {})
             self.assertEqual(response, result)
 
     def test_showanswer_attempted(self):
