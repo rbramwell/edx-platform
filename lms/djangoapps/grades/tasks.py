@@ -57,6 +57,11 @@ class _BaseTask(PersistOnFailureTask, LoggedTask):  # pylint: disable=abstract-m
     abstract = True
 
 
+@task
+def compute_grades_for_course(course_key, offset, batch_size):
+    pass
+
+
 @task(bind=True, base=_BaseTask, default_retry_delay=30, routing_key=settings.RECALCULATE_GRADES_ROUTING_KEY)
 def recalculate_subsection_grade_v3(self, **kwargs):
     """
