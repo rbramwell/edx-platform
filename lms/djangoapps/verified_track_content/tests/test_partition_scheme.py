@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+import pytz
+
 from ..partition_scheme import EnrollmentTrackPartitionScheme, EnrollmentTrackUserPartition
 from course_modes.models import CourseMode
 
@@ -23,22 +26,41 @@ class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
         self.assertEqual("Audit", groups[0].name)
 
     def test_multiple_groups(self):
-        def get_group_by_name(name):
-            for group in self.course.user_partitions[0].groups:
-                if group.name == name:
-                    return group
-            return None
-
         create_mode(self.course, CourseMode.AUDIT, "Audit Enrollment Track", min_price=0)
-        create_mode(self.course, CourseMode.VERIFIED, "Verified Enrollment Track", min_price=1)
-        create_mode(self.course, CourseMode.PROFESSIONAL, "Professional Enrollment Track", min_price=2)
+        create_mode(
+            self.course, CourseMode.VERIFIED, "Verified Enrollment Track", min_price=1,
+            expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=-1)
+        )
+        create_mode(self.course, CourseMode.CREDIT_MODE, "Credit Mode", min_price=2)
 
         self.assertEqual(len(self.course.user_partitions), 1)
         groups = self.course.user_partitions[0].groups
         self.assertEqual(3, len(groups))
-        self.assertIsNotNone(get_group_by_name("Audit Enrollment Track"))
-        self.assertIsNotNone(get_group_by_name("Verified Enrollment Track"))
-        self.assertIsNotNone(get_group_by_name("Professional Enrollment Track"))
+        self.assertIsNotNone(self.get_group_by_name("Audit Enrollment Track"))
+        self.assertIsNotNone(self.get_group_by_name("Verified Enrollment Track"))
+        self.assertIsNotNone(self.get_group_by_name("Credit Mode"))
+
+    def test_to_json(self):
+        create_mode(self.course, CourseMode.VERIFIED, "Verified Enrollment Track", min_price=1)
+        user_partition = self.course.user_partitions[0]
+        self.assertEqual(1, len(user_partition.groups))
+        self.assertIsNotNone(self.get_group_by_name("Verified Enrollment Track"))
+
+        json = user_partition.to_json()
+        self.assertEqual(json['groups'], [])
+        recreated_user_partition = EnrollmentTrackUserPartition.from_json(json)
+        self.assertEqual(user_partition, recreated_user_partition)
+
+        groups = recreated_user_partition.groups
+        self.assertEqual(1, len(groups))
+        self.assertEqual("Verified Enrollment Track", groups[0].name)
+
+    def get_group_by_name(self, name):
+        for group in self.course.user_partitions[0].groups:
+            if group.name == name:
+                return group
+        return None
+
 
 
 class EnrollmentTrackPartitionSchemeTest(SharedModuleStoreTestCase):
@@ -92,7 +114,7 @@ class EnrollmentTrackPartitionSchemeTest(SharedModuleStoreTestCase):
         return user_partition.scheme.get_group_for_user(self.course.id, self.student, user_partition)
 
 
-def create_mode(course, mode_slug, mode_name, min_price=0):
+def create_mode(course, mode_slug, mode_name, min_price=0, expiration_datetime=None):
     """
     Create a new course mode
     """
@@ -102,5 +124,6 @@ def create_mode(course, mode_slug, mode_name, min_price=0):
         mode_slug=mode_slug,
         min_price=min_price,
         suggested_prices='',
+        _expiration_datetime=expiration_datetime,
         currency='usd'
     )

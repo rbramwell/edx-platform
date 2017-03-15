@@ -30,30 +30,31 @@ class EnrollmentTrackUserPartition(UserPartition):
         # Note that when the key is stored during course_module creation, it is the draft version.
         course_key = CourseKey.from_string(self.parameters["course_id"]).for_branch(None)
         all_groups = []
-        for mode in CourseMode.all_modes_for_courses([course_key])[course_key]:
+
+        for mode in CourseMode.modes_for_course(course_key, include_expired=True, only_selectable=False):
             group = Group(ENROLLMENT_GROUP_IDS[mode.slug], unicode(mode.name))
             all_groups.append(group)
 
         return all_groups
 
-    # # TODO: add test if this method stays in
-    # def to_json(self):
-    #     """
-    #     'Serialize' to a json-serializable representation.
-    #
-    #     Returns:
-    #         a dictionary with keys for the properties of the partition.
-    #     """
-    #     return {
-    #         "id": self.id,
-    #         "name": self.name,
-    #         "scheme": self.scheme.name,
-    #         "description": self.description,
-    #         "parameters": self.parameters,
-    #         "groups": [],  # Groups are obtained dynamically, so we don't need to persist them.
-    #         "active": bool(self.active),
-    #         "version": UserPartition.VERSION
-    #     }
+    def to_json(self):
+        """
+        'Serialize' to a json-serializable representation.
+
+        Returns:
+            a dictionary with keys for the properties of the partition, with an empty array for
+            `groups` because it is dynamic based on the current course modes.
+        """
+        return {
+            "id": self.id,
+            "name": self.name,
+            "scheme": self.scheme.name,
+            "description": self.description,
+            "parameters": self.parameters,
+            "groups": [],  # Do not persist groups because they are dynamic.
+            "active": bool(self.active),
+            "version": UserPartition.VERSION
+        }
 
 
 class EnrollmentTrackPartitionScheme(object):

@@ -253,6 +253,14 @@ class DiscussionTopicsTestCase(unittest.TestCase):
         self.assertEqual({'General': {'id': 'i4x-test_org-test_course-course-test'}}, d.discussion_topics)
 
 
+class EnrollmentTrackUserPartitionTestCase(unittest.TestCase):
+    def test_default_discussion_topics(self):
+        course = get_dummy_course('2012-12-02T12:00')
+        self.assertEqual(len(course.user_partitions), 1)
+        user_partition = course.user_partitions[0]
+        self.assertEqual(user_partition.scheme.name, "verification_track")
+
+
 class TeamsConfigurationTestCase(unittest.TestCase):
     """
     Tests for the configuration of teams and the helper methods for accessing them.
