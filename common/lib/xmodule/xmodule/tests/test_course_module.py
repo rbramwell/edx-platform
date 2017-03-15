@@ -254,11 +254,11 @@ class DiscussionTopicsTestCase(unittest.TestCase):
 
 
 class EnrollmentTrackUserPartitionTestCase(unittest.TestCase):
-    def test_default_discussion_topics(self):
+    def test_default_user_partitions(self):
         course = get_dummy_course('2012-12-02T12:00')
         self.assertEqual(len(course.user_partitions), 1)
         user_partition = course.user_partitions[0]
-        self.assertEqual(user_partition.scheme.name, "verification_track")
+        self.assertEqual(user_partition.scheme.name, "enrollment_track")
 
 
 class TeamsConfigurationTestCase(unittest.TestCase):

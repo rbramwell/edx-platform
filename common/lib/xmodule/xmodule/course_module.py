@@ -17,7 +17,7 @@ from xmodule import course_metadata_utils
 from xmodule.course_metadata_utils import DEFAULT_START_DATE
 from xmodule.graders import grader_from_conf
 from xmodule.mixin import LicenseMixin
-from xmodule.partitions.partitions import UserPartition, UserPartitionError
+from xmodule.partitions.partitions import UserPartition, UserPartitionError, UserPartitionList
 from xmodule.seq_module import SequenceDescriptor, SequenceModule
 from xmodule.tabs import CourseTabList, InvalidTabsException
 from .fields import Date
@@ -818,6 +818,13 @@ class CourseFields(object):
     learning_info = List(
         display_name=_("Course Learning Information"),
         help=_("Specify what student can learn from the course."),
+        default=[],
+        scope=Scope.settings
+    )
+
+    user_partitions = UserPartitionList(
+        display_name=_("Group Configurations"),
+        help=_("Enter the configurations that govern how students are grouped together."),
         default=[],
         scope=Scope.settings
     )
