@@ -232,6 +232,10 @@ class TestRescoringTask(TestIntegrationTask):
         )
 
     def test_rescoring_if_higher_scores_equal(self):
+        """
+        Specifically tests rescore when the previous and new raw scores are equal. In this case, the scores should
+        be updated.
+        """
         problem_edit = dict(num_inputs=2)  # this change to the problem means the problem will now have a max score of 4
         unchanged_max = 2
         new_max = 4
@@ -245,8 +249,8 @@ class TestRescoringTask(TestIntegrationTask):
         self.submit_student_answer('u2', problem_url_name, [OPTION_2, OPTION_2])
 
         # verify each user's grade
-        self.check_state(self.user1, descriptor, 2, 2)
-        self.check_state(self.user2, descriptor, 0, 2)
+        self.check_state(self.user1, descriptor, 2, 2)  # user 1 has a 2/2
+        self.check_state(self.user2, descriptor, 0, 2)  # user 2 has a 0/2
 
         # update the data in the problem definition so the answer changes.
         self.redefine_option_problem(problem_url_name, **problem_edit)
@@ -254,12 +258,15 @@ class TestRescoringTask(TestIntegrationTask):
         # confirm that simply rendering the problem again does not change the grade
         self.render_problem('u1', problem_url_name)
         self.check_state(self.user1, descriptor, 2, 2)
+        self.check_state(self.user2, descriptor, 0, 2)
 
         # rescore the problem for all students
         self.submit_rescore_all_student_answers('instructor', problem_url_name, True)
+
+        # user 1's score would go down, so it remains 2/2. user 2's score was 0/2, which is equivalent to the new score
+        # of 0/4, so user 2's score changes to 0/4.
         self.check_state(self.user1, descriptor, 2, unchanged_max)
         self.check_state(self.user2, descriptor, 0, new_max)
-
 
     def test_rescoring_failure(self):
         """Simulate a failure in rescoring a problem"""
