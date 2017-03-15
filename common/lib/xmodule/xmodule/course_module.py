@@ -914,14 +914,13 @@ class CourseDescriptor(CourseFields, SequenceDescriptor, LicenseMixin):
                 new_id = 0
                 while new_id in used_ids:
                     new_id += 1
-                self.user_partitions.append(
-                    verification_track_scheme.create_user_partition(
-                        id=new_id,
-                        name=_(u"Enrollment Track Partition"),
-                        description=_(u"Partition for segmenting users by enrollment track"),
-                        parameters={"course_id": unicode(self.id)}
-                    )
-                 )
+                partition = verification_track_scheme.create_user_partition(
+                    id=new_id,
+                    name=_(u"Enrollment Track Partition"),
+                    description=_(u"Partition for segmenting users by enrollment track"),
+                    parameters={"course_id": unicode(self.id)}
+                )
+                self.user_partitions.append(partition)
 
         except UserPartitionError:
             log.warning(

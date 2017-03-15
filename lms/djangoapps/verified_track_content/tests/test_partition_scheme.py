@@ -62,7 +62,6 @@ class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
         return None
 
 
-
 class EnrollmentTrackPartitionSchemeTest(SharedModuleStoreTestCase):
 
     @classmethod

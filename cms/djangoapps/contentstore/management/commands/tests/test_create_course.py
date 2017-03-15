@@ -49,7 +49,8 @@ class TestCreateCourse(ModuleStoreTestCase):
 
     @ddt.data(ModuleStoreEnum.Type.mongo, ModuleStoreEnum.Type.split)
     def test_all_stores_user_email(self, store):
-        with patch('lms.djangoapps.verified_track_content.partition_scheme.is_course_using_cohort_instead') as mock_enabled:
+        with patch('lms.djangoapps.verified_track_content.partition_scheme.is_course_using_cohort_instead') \
+                as mock_enabled:
             mock_enabled.return_value = False
             call_command(
                 "create_course",
@@ -81,7 +82,8 @@ class TestCreateCourse(ModuleStoreTestCase):
         with self.store.default_store(default_store):
             lowercase_course_id = self.store.make_course_key(org, number, run)
             with self.store.bulk_operations(lowercase_course_id, ignore_case=True):
-                with patch('lms.djangoapps.verified_track_content.partition_scheme.is_course_using_cohort_instead') as mock_enabled:
+                with patch('lms.djangoapps.verified_track_content.partition_scheme.is_course_using_cohort_instead') \
+                        as mock_enabled:
                     mock_enabled.return_value = False
                     # Create course with lowercase key & Verify that store returns course.
                     self.store.create_course(

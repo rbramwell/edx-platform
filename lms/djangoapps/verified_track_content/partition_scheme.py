@@ -23,6 +23,7 @@ ENROLLMENT_GROUP_IDS = {
     CourseMode.HONOR: 6
 }
 
+
 class EnrollmentTrackUserPartition(UserPartition):
 
     @property
