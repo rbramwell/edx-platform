@@ -108,52 +108,79 @@
     line-height: 1;
   }
 
-  .certificate-status {
-    margin-bottom: 0;
+  .status-text {
+    display: flex;
+    margin-bottom: 5px;
+  }
 
-    .status-text {
-      font-size: font-size(x-small);
-      color: palette(grayscale, dark);
-      line-height: 1;
-    }
+  .number-status {
+    text-align: center;
+    width: 100%;
+    float: left;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-top: -8px;
+    padding-bottom: 8px;
+    font-size: 1em;
+    font-family: "Open Sans";
+  }
 
-    .secondary {
-      @extend %hide-until-focus;
-    }
+  .number-circle {
+    padding-top: 1px;
+    border-radius: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 23px;
+    height: 23px;
+    color: white;
+    text-align: center;
+    font-size: 0.9375em;
+    font-family: "Open Sans";
+    font-weight: bold;
+  }
 
-    .status-text {
-      &:focus,
-      &:active {
-        position: relative;
-        top: 4px;
-        width: auto;
-        height: auto;
-        margin: 0;
-        text-decoration: none;
+  .completed {
+    background: #1278B4;
+  }
 
-        & ~ .status-text {
-          @extend %hide-until-focus;
+  .enrolled {
+    background: #0A660C;
+  }
+
+  .not-enrolled {
+    background: #4C4A4A;
+  }
+
+  .progress-container {
+    max-width: inherit;
+
+    .progress-bar {
+      height: 5px;
+      $completed: #1278B4;
+      $enrolled: #0A660C;
+      $not-enrolled: lightgray;
+      display: flex;
+      width: 100%;
+
+      .item {
+        width: 100%;
+        margin-right: 2px;
+        height: 5px;
+
+        &.completed {
+          background: $completed;
+        }
+        &.enrolled {
+          background: $enrolled;
+        }
+        &.not-enrolled {
+          background: $not-enrolled;
+        }
+        &.not-enrolled:last-of-type {
+          margin-right: 0px;
         }
       }
     }
   }
 
-  .progress {
-    height: 5px;
-    background: palette(grayscale, back);
-
-    .bar {
-      @include float(left);
-      height: 100%;
-      position: relative;
-
-      &.complete {
-        background: palette(success, accent);
-      }
-
-      &.in-progress {
-        background: palette(warning, accent);
-      }
-    }
-  }
 }
